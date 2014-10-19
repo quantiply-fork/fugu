@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+	"time"
 )
 
 func CmdRun(fugufilePath string, args []string, label string) {
@@ -19,10 +20,11 @@ func CmdRun(fugufilePath string, args []string, label string) {
 
 	var conf = []config.Value{
 
-		// add new options: image, command and args
+		// add new options: image, command, args and exec
 		&config.StringValue{Name: []string{"image"}},
 		&config.StringValue{Name: []string{"command"}},
 		&config.StringSliceValue{Name: []string{"args"}},
+		&config.StringSliceValue{Name: []string{"exec"}},
 
 		// official docker options ...
 		&config.BoolValue{Name: []string{"rm"}},
@@ -96,19 +98,43 @@ func CmdRun(fugufilePath string, args []string, label string) {
 	// }
 
 	// finally build args
-	a := BuildRunArgs(&conf)
+	a, dExec := BuildRunArgs(&conf)
 
 	a = append(a, "")
 	copy(a[1:], a[0:])
 	a[0] = "run"
 
 	fmt.Println("docker", strings.Join(a, " "))
-
 	cmd := exec.Command("docker", a...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	cmd.Run()
+
+	cmd.Start()
+
+	// run docker exec
+	containerName := config.Get(conf, "name")
+	if containerName == nil && len(dExec) > 0 {
+		fmt.Println("Please specify a container name when using 'exec' option.")
+		os.Exit(1)
+	} else {
+		time.Sleep(2 * time.Second) // TODO bad idea! verify that the container started!
+		for _, dE := range dExec {
+
+			dEa := strings.Split("exec --interactive=true --tty=true", " ")
+			dEa = append(dEa, containerName.Get().(string))
+			dEa = append(dEa, strings.Split(dE, " ")...)
+
+			fmt.Println("docker", strings.Join(dEa, " "))
+			dEexecCmd := exec.Command("docker", dEa...)
+			dEexecCmd.Stdout = os.Stdout
+			dEexecCmd.Stderr = os.Stderr
+			dEexecCmd.Stdin = os.Stdin
+			dEexecCmd.Run()
+		}
+	}
+
+	cmd.Wait()
 }
 
 func CmdBuild(fugufilePath string, args []string, label string) {

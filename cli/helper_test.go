@@ -161,13 +161,15 @@ func TestMergeConfig(t *testing.T) {
 }
 
 var buildArgsTest = []struct {
-	in  []config.Value
-	out []string
+	in         []config.Value
+	out        []string
+	dockerExec []string
 }{
 	{
 		[]config.Value{
 			&config.StringValue{Name: []string{"command"}, Value: "echo", Defined: true},
 			&config.StringSliceValue{Name: []string{"args"}, Value: []string{"hello", "world"}, Defined: true},
+			&config.StringSliceValue{Name: []string{"exec"}, Value: []string{"hello", "world"}, Defined: true},
 			&config.StringValue{Name: []string{"name"}, Value: "foobar", Defined: true},
 			&config.StringValue{Name: []string{"image"}, Value: "mattes/image", Defined: true},
 			&config.BoolValue{Name: []string{"rm"}, Value: true, Defined: true},
@@ -179,12 +181,14 @@ var buildArgsTest = []struct {
 		[]string{`--detach=false`, `--name="foobar"`,
 			`--publish="50:60"`, `--publish="70:80"`, `--publish="90:100"`,
 			`--rm`, "mattes/image", "echo", "hello", "world"},
+		[]string{"hello", "world"},
 	},
 }
 
 func TestBuildRunArgs(t *testing.T) {
 	for _, tt := range buildArgsTest {
-		args := BuildRunArgs(&tt.in)
+		args, dockerExec := BuildRunArgs(&tt.in)
 		require.Equal(t, tt.out, args, spew.Sdump(tt))
+		require.Equal(t, tt.dockerExec, dockerExec, spew.Sdump(tt))
 	}
 }

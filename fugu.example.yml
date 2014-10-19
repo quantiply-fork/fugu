@@ -28,3 +28,5 @@ face:
   <<: *a-team
   name: face
   command: /home/kippo/start.sh
+  exec:
+    - echo 'run as docker exec'

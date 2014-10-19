@@ -26,10 +26,11 @@ func MergeConfig(fugufileData []byte, args []string, label string, conf *[]confi
 	return nil
 }
 
-func BuildRunArgs(conf *[]config.Value) []string {
+func BuildRunArgs(conf *[]config.Value) ([]string, []string) {
 	dockerImage := ""
 	dockerCommand := ""
 	dockerArgs := make([]string, 0)
+	dockerExec := make([]string, 0)
 
 	args := make([]string, 0)
 	for _, c := range *conf {
@@ -39,6 +40,8 @@ func BuildRunArgs(conf *[]config.Value) []string {
 			dockerCommand = c.Get().(string)
 		} else if c.Names()[0] == "args" {
 			dockerArgs = c.Get().([]string)
+		} else if c.Names()[0] == "exec" {
+			dockerExec = c.Get().([]string)
 		} else {
 			v := c.Arg()
 			if len(v) > 0 {
@@ -60,7 +63,7 @@ func BuildRunArgs(conf *[]config.Value) []string {
 		args = append(args, dockerArgs...)
 	}
 
-	return args
+	return args, dockerExec
 }
 
 func FindFugufile(filepath string, searchFilePaths []string) (fugufilePath string, viaFugufilePath bool) {
