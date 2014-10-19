@@ -18,11 +18,14 @@ name:   hello-world-nginx
 detach: true
 publish:
   - 8080:80
+exec:
+  - echo hello world
 ```
 
 ```bash
 $ fugu run -e VERY=nice # runs ...
 docker run --detach --name="hello-world-nginx" --env="VERY=nice" --publish="8080:80" mattes/hello-world-nginx
+docker exec --interactive=true --tty=true hello-world-nginx echo hello world
 ```
 
 All docker options are supported. See __[full documentation here](DOC.md)__.
