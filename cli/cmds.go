@@ -21,6 +21,7 @@ func CmdRun(fugufilePath string, args []string, label string) {
 		// add new options: image, command and args
 		&config.StringValue{Name: []string{"image"}},
 		&config.StringValue{Name: []string{"command"}},
+		&config.StringValue{Name: []string{"host"}},
 		&config.StringSliceValue{Name: []string{"args"}},
 
 		// official docker options ...
@@ -70,6 +71,7 @@ func CmdRun(fugufilePath string, args []string, label string) {
 	}
 
 	err = MergeConfig(data, args, label, &conf)
+
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -99,7 +101,12 @@ func CmdRun(fugufilePath string, args []string, label string) {
 
 	a = append(a, "")
 	copy(a[1:], a[0:])
-	a[0] = "docker run"
+	if config.Get(conf, "host") != nil {
+		a[0] = fmt.Sprintf("docker -H=%s run", config.Get(conf, "host").Get().(string) )
+	} else {
+		a[0] = "docker run"	
+	}
+	
 
 	fmt.Println(strings.Join(a, " "))
 

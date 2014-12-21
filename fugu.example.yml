@@ -1,6 +1,7 @@
 a-team: &a-team
   image: a_team/action
   detach: true
+  host: tcp://abx.xom:2376
 
 hannibal:
   <<: *a-team

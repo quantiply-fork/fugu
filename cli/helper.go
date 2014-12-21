@@ -37,6 +37,8 @@ func BuildRunArgs(conf *[]config.Value) []string {
 			dockerImage = c.Get().(string)
 		} else if c.Names()[0] == "command" {
 			dockerCommand = c.Get().(string)
+		} else if c.Names()[0] == "host" {
+			// do nothing
 		} else if c.Names()[0] == "args" {
 			dockerArgs = c.Get().([]string)
 		} else {
